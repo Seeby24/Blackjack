@@ -110,7 +110,7 @@ export default function Blackjack() {
             }, 200);
         }, 200);
     }
-
+    // Dealer zieht karten
     useEffect(() => {
         if (standpressed && dealerPuntke <= 16) {
             const timeout = setTimeout(() => {
@@ -138,13 +138,13 @@ export default function Blackjack() {
             resetSpiel();
 
     }
-
+  // Checke auf Gewinn
     useEffect(() => {
         if (spielerPuntke > 21) {
             setTimeout(() => {
                 alert("Du hast verloren");
                 resetSpiel();
-            }, 300); // kurze Wartezeit, damit die Karte angezeigt wird
+            }, 300);
         } else if (spielerPuntke === 21) {
             setTimeout(() => {
                 alert("Du hast gewonnen");
@@ -172,7 +172,7 @@ export default function Blackjack() {
             <h2>Spieler {spielerPuntke}</h2>
             <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
                 {spielerKarten.map((karte) => (
-                    <div key={karte.id} style={{border: "1px solid black", padding: "5px"}}>
+                    <div key={karte.id} style={{border: "1px solid white", padding: "5px"}}>
                         <strong>{karte.symbol}</strong>
 
 
@@ -183,7 +183,7 @@ export default function Blackjack() {
             <h2>Dealer {dealerPuntke}</h2>
             <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
                 {dealerKarten.map((karte) => (
-                    <div key={karte.id} style={{border: "1px solid black", padding: "5px"}}>
+                    <div key={karte.id} style={{border: "1px solid white", padding: "5px"}}>
                         <strong>{karte.symbol}</strong>
 
                     </div>
