@@ -63,6 +63,8 @@ export default function Blackjack() {
     const [dealerPuntke, setDealerPunkte] = useState(0);
     const [start, setStart] = useState(false);
     const [standpressed,setStandpressed] = useState(false)
+    const [money,setMoney] = useState(1000)
+    const [bet,setBet] = useState(0)
 
 
     function karteZiehen(dran) {
@@ -128,6 +130,7 @@ export default function Blackjack() {
     function  entscheideGewinner(){
             if (dealerPuntke > 21) {
                 alert("Du hast gewonnen!");
+                setMoney()
             } else if (dealerPuntke > spielerPuntke) {
                 alert("Dealer gewinnt!");
             } else if (dealerPuntke === spielerPuntke) {
@@ -162,6 +165,8 @@ export default function Blackjack() {
     return (
         <div>
             <h1>Blackjack</h1>
+            <h3>Geld:{money}</h3>
+            <input type="number"/>
             <div>
                 <button onClick={spielStarten} disabled={start}>Starten</button>
                 <button onClick={resetSpiel}>Spiel zurücksetzen</button>
