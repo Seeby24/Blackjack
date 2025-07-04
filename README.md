@@ -1,2 +1,2 @@
-#1 Blackjack
+# Blackjack
 Das ist ein einfaches Blackjack Spiel
