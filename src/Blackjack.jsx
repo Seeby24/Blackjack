@@ -190,7 +190,6 @@ export default function Blackjack() {
                 {dealerKarten.map((karte) => (
                     <div key={karte.id} style={{border: "1px solid white", padding: "5px"}}>
                         <strong>{karte.symbol}</strong>
-
                     </div>
                 ))}
             </div>
