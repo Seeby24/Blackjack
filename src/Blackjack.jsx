@@ -62,9 +62,11 @@ export default function Blackjack() {
     const [spielerPuntke, setSpielerPunkte] = useState(0);
     const [dealerPuntke, setDealerPunkte] = useState(0);
     const [start, setStart] = useState(false);
-    const [standpressed,setStandpressed] = useState(false)
-    const [money,setMoney] = useState(1000)
-    const [bet,setBet] = useState(0)
+    const [standpressed, setStandpressed] = useState(false)
+    const [money, setMoney] = useState(1000)
+    const [bet, setBet] = useState(0)
+    const [spielBeendet, setSpielBeendet] = useState(false)
+    const [nachricht,setNachricht] = useState("")
 
 
     function karteZiehen(dran) {
@@ -86,13 +88,16 @@ export default function Blackjack() {
         }
     }
 
-    function handleStand(){
+    function handleStand() {
         setStandpressed(true)
     }
 
-
+    function changeBet(event) {
+        setBet(event.target.value)
+    }
 
     function resetSpiel() {
+        setSpielBeendet(false);
         setDeck(initialKarten);
         setSpielerKarten([]);
         setDealerKarten([]);
@@ -100,18 +105,24 @@ export default function Blackjack() {
         setSpielerPunkte(0);
         setStart(false)
         setStandpressed(false)
+
     }
 
     function spielStarten() {
         resetSpiel();
         setStart(true)
+        setMoney(money - bet)
         setTimeout(() => {
             karteZiehen("spieler");
             setTimeout(() => {
                 karteZiehen("dealer");
             }, 200);
+            setTimeout(() => {
+                karteZiehen("dealer");
+            }, 200);
         }, 200);
     }
+
     // Dealer zieht karten
     useEffect(() => {
         if (standpressed && dealerPuntke <= 16) {
@@ -127,48 +138,81 @@ export default function Blackjack() {
     }, [standpressed, dealerPuntke]);
 
 
-    function  entscheideGewinner(){
-            if (dealerPuntke > 21) {
-                alert("Du hast gewonnen!");
-                setMoney()
-            } else if (dealerPuntke > spielerPuntke) {
-                alert("Dealer gewinnt!");
-            } else if (dealerPuntke === spielerPuntke) {
-                alert("Spieler gewinnt");
-            } else {
-                alert("Du hast gewonnen!");
-            }
-            resetSpiel();
+    function entscheideGewinner() {
+        if (spielBeendet) return
+        setSpielBeendet(true)
 
+        if (dealerPuntke > 21) {
+            setNachricht("Du gewinnst!")
+            setMoney(money + bet * 2)
+        } else if (spielerPuntke > dealerPuntke) {
+           setNachricht("Du gewinnst!")
+            setMoney(money + bet * 2)
+        } else if (spielerPuntke === dealerPuntke) {
+            setNachricht("Unentschieden, keiner gewinnt!")
+            setMoney(money + bet)
+        } else {
+            setNachricht("Dealer gewinnt!")
+
+        }
+
+        resetSpiel();
     }
-  // Checke auf Gewinn
+    // Löschen der Message
     useEffect(() => {
+        if (nachricht) {
+            const timer = setTimeout(() => setNachricht(""), 2500); // nach 2.5 Sekunden weg
+            return () => clearTimeout(timer);
+        }
+    }, [nachricht]);
+
+    // Checke auf Gewinn
+    useEffect(() => {
+        if (spielBeendet) return
         if (spielerPuntke > 21) {
             setTimeout(() => {
-                alert("Du hast verloren");
-                resetSpiel();
-            }, 300);
-        } else if (spielerPuntke === 21) {
-            setTimeout(() => {
-                alert("Du hast gewonnen");
+                setNachricht("Du hast dich überkauft!")
                 resetSpiel();
             }, 300);
         } else if (dealerPuntke > 21) {
             setTimeout(() => {
-                alert("Du hast gewonnen");
+                setNachricht("Dealer hat sich überkauft")
+                setMoney(money + (bet * 2))
                 resetSpiel();
             }, 300);
         }
-    }, [spielerPuntke,dealerPuntke]);
+    }, [spielerPuntke, dealerPuntke]);
 
 
     return (
         <div>
             <h1>Blackjack</h1>
             <h3>Geld:{money}</h3>
-            <input type="number"/>
+            <div className={nachricht}>
+                {nachricht && (
+                    <div style={{
+                        position: "fixed",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        backgroundColor: "#333",
+                        color: "#fff",
+                        padding: "20px 40px",
+                        borderRadius: "12px",
+                        boxShadow: "0 0 15px rgba(0,0,0,0.3)",
+                        zIndex: 1000,
+                        fontSize: "1.2rem",
+                        textAlign: "center",
+                        animation: "fadeInOut 2.5s ease-in-out"
+                    }}>
+                        {nachricht}
+                    </div>
+                )}
+
+            </div>
+            <input type="number" onChange={changeBet} disabled={start} min= "1" max={money}/>
             <div>
-                <button onClick={spielStarten} disabled={start}>Starten</button>
+                <button onClick={spielStarten} disabled={start || bet < 1 || bet > money}  >Starten</button>
                 <button onClick={resetSpiel}>Spiel zurücksetzen</button>
                 <button onClick={() => karteZiehen("spieler")} disabled={!start || standpressed}>Hit</button>
                 <button onClick={handleStand} disabled={!start || standpressed}>Stand</button>

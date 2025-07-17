@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://seeby24.github.io/Blackjack",
+  "homepage": "https://Seeby24.github.io/Blackjack",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
