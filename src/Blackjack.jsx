@@ -114,6 +114,7 @@ export default function Blackjack() {
         setStart(false);
         setStandpressed(false);
         setIsBlackjack(false);
+        setIsHidden(true);
     }
 
     function spielStarten() {
