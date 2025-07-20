@@ -62,19 +62,19 @@ export default function Blackjack() {
     const [spielerPuntke, setSpielerPunkte] = useState(0);
     const [dealerPuntke, setDealerPunkte] = useState(0);
     const [start, setStart] = useState(false);
-    const [standpressed, setStandpressed] = useState(false)
-    const [money, setMoney] = useState(1000)
-    const [bet, setBet] = useState(0)
-    const [spielBeendet, setSpielBeendet] = useState(false)
-    const [nachricht,setNachricht] = useState("")
+    const [standpressed, setStandpressed] = useState(false);
+    const [money, setMoney] = useState(1000);
+    const [bet, setBet] = useState(0);
+    const [spielBeendet, setSpielBeendet] = useState(false);
+    const [nachricht,setNachricht] = useState("");
+    const [isBlackjack,setIsBlackjack] = useState(false);
+    const [isHidden,setIsHidden] = useState(true);
 
 
     function karteZiehen(dran) {
         if (deck.length === 0) return;
-
         const index = Math.floor(Math.random() * deck.length);
         const gezogene = deck[index];
-
         const neuesDeck = [...deck];
         neuesDeck.splice(index, 1);
         setDeck(neuesDeck);
@@ -88,12 +88,20 @@ export default function Blackjack() {
         }
     }
 
+    function checkBlackjack(karten) {
+        const werte = karten.map(k => k.wert).sort();
+        if (werte.length === 2 && werte.includes(11) && werte.includes(10)) {
+            setIsBlackjack(true);
+        }
+    }
+
     function handleStand() {
-        setStandpressed(true)
+        setIsHidden(false);
+        setStandpressed(true);
     }
 
     function changeBet(event) {
-        setBet(event.target.value)
+        setBet(event.target.value);
     }
 
     function resetSpiel() {
@@ -103,27 +111,77 @@ export default function Blackjack() {
         setDealerKarten([]);
         setDealerPunkte(0);
         setSpielerPunkte(0);
-        setStart(false)
-        setStandpressed(false)
-
+        setStart(false);
+        setStandpressed(false);
+        setIsBlackjack(false);
     }
 
     function spielStarten() {
         resetSpiel();
-        setStart(true)
-        setMoney(money - bet)
+        setStart(true);
+        setMoney(money - bet);
+
+        /* Testkarten
+         const testHand = [
+
+            { id: 1, name: "Pik Ass", wert: 11, symbol: "♠A" },
+            { id: 2, name: "Herz König", wert: 10, symbol: "♥K" }
+        ];
+
+        setSpielerKarten(testHand);
+        setSpielerPunkte(21);
+         */
+
+
         setTimeout(() => {
             karteZiehen("spieler");
+
             setTimeout(() => {
                 karteZiehen("dealer");
-            }, 200);
-            setTimeout(() => {
-                karteZiehen("dealer");
-            }, 200);
+
+                setTimeout(() => {
+                    karteZiehen("spieler");
+
+                    setTimeout(() => {
+                        karteZiehen("dealer");
+                    }, 400);
+
+                }, 400);
+
+            }, 400);
+
         }, 200);
     }
 
-    // Dealer zieht karten
+    function entscheideGewinner() {
+        if (spielBeendet) return;
+        setSpielBeendet(true);
+
+        if (
+            spielerPuntke === 21 &&
+            isBlackjack &&
+            spielerKarten.length === 2 &&
+            dealerPuntke !== 21
+        ) {
+            setNachricht("Du gewinnst mit einem Blackjack!");
+            setMoney(money + bet * 4.5);
+        } else if (dealerPuntke > 21) {
+            setNachricht("Du gewinnst!");
+            setMoney(money + bet * 2);
+        } else if (spielerPuntke > dealerPuntke) {
+            setNachricht("Du gewinnst!");
+            setMoney(money + bet * 2);
+        } else if (spielerPuntke === dealerPuntke) {
+            setNachricht("Unentschieden, keiner gewinnt!");
+            setMoney(money + bet);
+        } else {
+            setNachricht("Dealer gewinnt!");
+        }
+
+        resetSpiel();
+    }
+
+    //  Dealer zieht Karten
     useEffect(() => {
         if (standpressed && dealerPuntke <= 16) {
             const timeout = setTimeout(() => {
@@ -137,85 +195,94 @@ export default function Blackjack() {
         }
     }, [standpressed, dealerPuntke]);
 
-
-    function entscheideGewinner() {
-        if (spielBeendet) return
-        setSpielBeendet(true)
-
-        if (dealerPuntke > 21) {
-            setNachricht("Du gewinnst!")
-            setMoney(money + bet * 2)
-        } else if (spielerPuntke > dealerPuntke) {
-           setNachricht("Du gewinnst!")
-            setMoney(money + bet * 2)
-        } else if (spielerPuntke === dealerPuntke) {
-            setNachricht("Unentschieden, keiner gewinnt!")
-            setMoney(money + bet)
-        } else {
-            setNachricht("Dealer gewinnt!")
-
-        }
-
-        resetSpiel();
-    }
-    // Löschen der Message
+    // Auf Blackjack prüfen
     useEffect(() => {
-        if (nachricht) {
-            const timer = setTimeout(() => setNachricht(""), 2500); // nach 2.5 Sekunden weg
-            return () => clearTimeout(timer);
+        if (spielerKarten.length === 2) {
+            checkBlackjack(spielerKarten);
         }
-    }, [nachricht]);
+    }, [spielerKarten]);
 
-    // Checke auf Gewinn
+    // Gewinnen durch >21
     useEffect(() => {
-        if (spielBeendet) return
+        if (spielBeendet) return;
+
         if (spielerPuntke > 21) {
             setTimeout(() => {
-                setNachricht("Du hast dich überkauft!")
+                setNachricht("Du hast dich überkauft!");
                 resetSpiel();
             }, 300);
         } else if (dealerPuntke > 21) {
             setTimeout(() => {
-                setNachricht("Dealer hat sich überkauft")
-                setMoney(money + (bet * 2))
+                setNachricht("Dealer hat sich überkauft");
+                setMoney(money + bet * 2);
                 resetSpiel();
             }, 300);
         }
     }, [spielerPuntke, dealerPuntke]);
 
+    //  Nachricht löschen
+    useEffect(() => {
+        if (nachricht) {
+            const timer = setTimeout(() => setNachricht(""), 2500);
+            return () => clearTimeout(timer);
+        }
+    }, [nachricht]);
+
 
     return (
         <div>
             <h1>Blackjack</h1>
-            <h3>Geld:{money}</h3>
-            <div className={nachricht}>
-                {nachricht && (
-                    <div style={{
-                        position: "fixed",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        backgroundColor: "#333",
-                        color: "#fff",
-                        padding: "20px 40px",
-                        borderRadius: "12px",
-                        boxShadow: "0 0 15px rgba(0,0,0,0.3)",
-                        zIndex: 1000,
-                        fontSize: "1.2rem",
-                        textAlign: "center",
-                        animation: "fadeInOut 2.5s ease-in-out"
-                    }}>
-                        {nachricht}
-                    </div>
-                )}
+            <h3>Geld: {money}</h3>
 
-            </div>
-            <input type="number" onChange={changeBet} disabled={start} min= "1" max={money}/>
+            {nachricht && (
+                <div style={{
+                    position: "fixed",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    backgroundColor: "#333",
+                    color: "#fff",
+                    padding: "20px 40px",
+                    borderRadius: "12px",
+                    boxShadow: "0 0 15px rgba(0,0,0,0.3)",
+                    zIndex: 1000,
+                    fontSize: "1.2rem",
+                    textAlign: "center",
+                    animation: "fadeInOut 2.5s ease-in-out"
+                }}>
+                    {nachricht}
+                </div>
+            )}
+
+            <input
+                type="number"
+                onChange={changeBet}
+                disabled={start}
+                min="1"
+                max={money}
+            />
+
             <div>
-                <button onClick={spielStarten} disabled={start || bet < 1 || bet > money}  >Starten</button>
-                <button onClick={resetSpiel}>Spiel zurücksetzen</button>
-                <button onClick={() => karteZiehen("spieler")} disabled={!start || standpressed}>Hit</button>
-                <button onClick={handleStand} disabled={!start || standpressed}>Stand</button>
+                <button
+                    onClick={spielStarten}
+                    disabled={start || bet < 1 || bet > money}
+                >
+                    Starten
+                </button>
+
+                <button
+                    onClick={() => karteZiehen("spieler")}
+                    disabled={!start || standpressed}
+                >
+                    Hit
+                </button>
+
+                <button
+                    onClick={handleStand}
+                    disabled={!start || standpressed}
+                >
+                    Stand
+                </button>
             </div>
 
             <h2>Spieler {spielerPuntke}</h2>
@@ -223,17 +290,19 @@ export default function Blackjack() {
                 {spielerKarten.map((karte) => (
                     <div key={karte.id} style={{border: "1px solid white", padding: "5px"}}>
                         <strong>{karte.symbol}</strong>
-
-
                     </div>
                 ))}
             </div>
 
-            <h2>Dealer {dealerPuntke}</h2>
+            <h2>Dealer {isHidden && dealerKarten.length > 0 ? "?" : dealerPuntke}</h2>
             <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
-                {dealerKarten.map((karte) => (
+                {dealerKarten.map((karte, index) => (
                     <div key={karte.id} style={{border: "1px solid white", padding: "5px"}}>
-                        <strong>{karte.symbol}</strong>
+                        <strong>
+                            {(index === 1 && isHidden)
+                                ? "🂠?"
+                                : karte.symbol}
+                        </strong>
                     </div>
                 ))}
             </div>
